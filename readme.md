@@ -73,7 +73,7 @@ Nameservers : ns1.example.com, ns2.example.com
 ## Captures d'écran
 
 ![Capture d'écran 1](https://image.noelshack.com/fichiers/2025/10/7/1741535920-mxosint.png)  
-*(Remplacez ce lien par une capture d'écran réelle si vous en avez une)*
+
 
 ## Avertissement
 
