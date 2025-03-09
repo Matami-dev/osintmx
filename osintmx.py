@@ -8,12 +8,18 @@ import socket
 from time import sleep
 from datetime import datetime
 from termcolor import colored, cprint
+import whois  # Module pour WHOIS
+import dns.resolver  # Module pour les résolutions DNS
+
 try:
     from pyfiglet import Figlet
 except ImportError:
-    pass
+    print(colored("[!] Le module 'pyfiglet' n'est pas installé. L'affichage du banner sera basique.", 'yellow'))
 
 os.system('clear')
+
+# Configuration du logging
+logging.basicConfig(filename='osintmx.log', level=logging.ERROR)
 
 def banner():
     if 'pyfiglet' in sys.modules:
@@ -53,35 +59,31 @@ def email_investigation():
     cprint(f"\n[+] Analyse de {email}...", 'white')
     
     try:
-        # Vérification Hunter.io (version gratuite)
+        # Vérification du domaine avec WHOIS
         domain = email.split('@')[1]
-        url = f"https://api.hunter.io/v2/domain-search?domain={domain}&api_key=freekey"
-        response = requests.get(url).json()
-        
-        print(colored("\n=== INFORMATIONS DOMAINE ===", 'red'))
-        if 'data' in response:
-            print(f"Domaine : {response['data']['domain']}")
-            print(f"Organisation : {response['data']['organization']}")
-            print(f"Pays : {response['data']['country']}")
-            print(f"Emails associés : {len(response['data']['emails'])}")
+        cprint(f"\n=== INFORMATIONS DOMAINE ===", 'red')
+        domain_info = whois.whois(domain)
+        print(f"Domaine : {domain_info.domain_name}")
+        print(f"Créé le : {domain_info.creation_date}")
+        print(f"Expire le : {domain_info.expiration_date}")
+        print(f"Registrar : {domain_info.registrar}")
+        print(f"Nameservers : {', '.join(domain_info.name_servers)}")
     except Exception as e:
-        cprint(f"\n[!] Erreur API: {e}", 'red')
+        cprint(f"\n[!] Erreur lors de la récupération des informations WHOIS: {e}", 'red')
 
 def domain_investigation():
     domain = input("\nEntrez le domaine: ")
     cprint(f"\n[+] Recherche WHOIS pour {domain}...", 'white')
     
     try:
-        url = f"https://api.whoapi.com/?domain={domain}&r=whois&apikey=freekey"
-        response = requests.get(url).json()
-        
+        domain_info = whois.whois(domain)
         print(colored("\n=== INFORMATIONS WHOIS ===", 'red'))
-        print(f"Créé le : {response['created_date']}")
-        print(f"Expire le : {response['expiry_date']}")
-        print(f"Registrar : {response['registrar']}")
-        print(f"Nameservers : {', '.join(response['nameservers'])}")
-    except:
-        cprint("\n[!] Impossible de récupérer les informations WHOIS", 'red')
+        print(f"Créé le : {domain_info.creation_date}")
+        print(f"Expire le : {domain_info.expiration_date}")
+        print(f"Registrar : {domain_info.registrar}")
+        print(f"Nameservers : {', '.join(domain_info.name_servers)}")
+    except Exception as e:
+        cprint(f"\n[!] Erreur WHOIS: {e}", 'red')
 
 def ip_investigation():
     ip = input("\nEntrez l'adresse IP: ")
@@ -89,13 +91,13 @@ def ip_investigation():
         response = requests.get(f"http://ip-api.com/json/{ip}").json()
         
         print(colored("\n=== GEOLOCALISATION IP ===", 'red'))
-        print(f"Pays : {response['country']}")
-        print(f"Région : {response['regionName']}")
-        print(f"Ville : {response['city']}")
-        print(f"Fournisseur : {response['isp']}")
-        print(f"Coordonnées : {response['lat']}, {response['lon']}")
-    except:
-        cprint("\n[!] Impossible de géolocaliser l'IP", 'red')
+        print(f"Pays : {response.get('country', 'N/A')}")
+        print(f"Région : {response.get('regionName', 'N/A')}")
+        print(f"Ville : {response.get('city', 'N/A')}")
+        print(f"Fournisseur : {response.get('isp', 'N/A')}")
+        print(f"Coordonnées : {response.get('lat', 'N/A')}, {response.get('lon', 'N/A')}")
+    except Exception as e:
+        cprint(f"\n[!] Erreur de géolocalisation: {e}", 'red')
 
 def phone_investigation():
     number = input("\nEntrez le numéro (avec indicatif): ")
@@ -109,8 +111,8 @@ def phone_investigation():
         
         from phonenumbers import carrier
         print(f"Opérateur : {carrier.name_for_number(parsed, 'fr')}")
-    except:
-        cprint("\n[!] Numéro invalide !", 'red')
+    except Exception as e:
+        cprint(f"\n[!] Erreur avec le numéro: {e}", 'red')
 
 def username_investigation():
     username = input("\nEntrez le pseudo: ")
@@ -127,7 +129,7 @@ def username_investigation():
         try:
             response = requests.head(url)
             print(f"{site}: {'Trouvé' if response.status_code == 200 else 'Non trouvé'}")
-        except:
+        except Exception as e:
             print(f"{site}: Erreur de connexion")
 
 def main():
