@@ -10,16 +10,9 @@ from datetime import datetime
 from termcolor import colored, cprint
 import whois  # Module pour WHOIS
 import dns.resolver  # Module pour les résolutions DNS
-
-try:
-    from pyfiglet import Figlet
-except ImportError:
-    print(colored("[!] Le module 'pyfiglet' n'est pas installé. L'affichage du banner sera basique.", 'yellow'))
+from pyfiglet import Figlet
 
 os.system('clear')
-
-# Configuration du logging
-logging.basicConfig(filename='osintmx.log', level=logging.ERROR)
 
 def banner():
     if 'pyfiglet' in sys.modules:
@@ -59,7 +52,6 @@ def email_investigation():
     cprint(f"\n[+] Analyse de {email}...", 'white')
     
     try:
-        # Vérification du domaine avec WHOIS
         domain = email.split('@')[1]
         cprint(f"\n=== INFORMATIONS DOMAINE ===", 'red')
         domain_info = whois.whois(domain)
