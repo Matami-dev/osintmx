@@ -1,4 +1,5 @@
 #!/usr/bin/env python3
+#THIS VERSION IS ONLY FOR ANDROID TERMUX USER
 import os
 import re
 import sys
